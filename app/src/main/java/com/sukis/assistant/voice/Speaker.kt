@@ -77,6 +77,8 @@ class Speaker(private val context: Context, private val prefs: Prefs) {
 
     suspend fun speak(text: String) {
         if (text.isBlank()) return
+        // Se vuelve a pedir el foco: Spotify pudo haberlo tomado al empezar a sonar.
+        unduck()
         duck()
         try {
             val mp3 = runCatching {

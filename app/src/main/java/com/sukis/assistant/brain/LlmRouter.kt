@@ -97,7 +97,7 @@ class LlmRouter(private val prefs: Prefs) {
         }
         val msg = choices.getJSONObject(0).optJSONObject("message")
             ?: throw IOException("Respuesta sin message")
-        val content = msg.optString("content", "")
+        val content = contentOf(msg)
         val calls = msg.optJSONArray("tool_calls")
         if (content.isBlank() && (calls == null || calls.length() == 0)) {
             throw IOException("Respuesta vacía del modelo")
@@ -164,6 +164,10 @@ class LlmRouter(private val prefs: Prefs) {
     }
 
     companion object {
+        /** org.json convierte un content nulo en el texto "null"; esto lo evita. */
+        fun contentOf(msg: JSONObject): String =
+            if (!msg.has("content") || msg.isNull("content")) "" else msg.optString("content")
+
         val PROVIDERS = listOf(
             Provider("groq", "https://api.groq.com/openai/v1", { it.groqKey }),
             Provider("gemini", "https://generativelanguage.googleapis.com/v1beta/openai", { it.geminiKey }),

@@ -103,13 +103,13 @@ class Agent(context: Context, private val prefs: Prefs) {
             val (msg, cand) = router.complete(messages, specs)
             val calls = msg.optJSONArray("tool_calls")
             if (calls == null || calls.length() == 0) {
-                finalText = msg.optString("content").trim()
+                finalText = LlmRouter.contentOf(msg).trim()
                 Bus.log("Respuesta de ${cand.label}")
                 break
             }
             // Se reenvía el mensaje del asistente con sus tool_calls tal cual (incluye firmas de Gemini).
             val assistantMsg = JSONObject().put("role", "assistant").put("tool_calls", calls)
-            msg.optString("content").takeIf { it.isNotBlank() && it != "null" }?.let { assistantMsg.put("content", it) }
+            LlmRouter.contentOf(msg).takeIf { it.isNotBlank() }?.let { assistantMsg.put("content", it) }
             messages.put(assistantMsg)
             for (i in 0 until calls.length()) {
                 val call = calls.getJSONObject(i)
